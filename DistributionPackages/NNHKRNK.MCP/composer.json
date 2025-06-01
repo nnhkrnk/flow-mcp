@@ -1,0 +1,18 @@
+{
+    "description": "",
+    "type": "neos-package",
+    "name": "nnhkrnk/mcp",
+    "require": {
+        "neos/flow": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "NNHKRNK\\MCP\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "NNHKRNK.MCP"
+        }
+    }
+}

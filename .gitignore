@@ -1,0 +1,9 @@
+/Data/
+/Packages/Framework/
+/Packages/Libraries/
+/bin/
+/Build/
+/Configuration/Settings.yaml
+/.editorconfig
+/flow
+/flow.bat

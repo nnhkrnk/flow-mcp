@@ -1,0 +1,39 @@
+#                                                                        #
+# Default routes configuration for the Welcome package                   #
+#                                                                        #
+
+-
+  name: 'Welcome screen'
+  uriPattern: 'flow/welcome'
+  defaults:
+    '@package':    'NNHKRNK.MCP'
+    '@controller': 'Standard'
+    '@action':     'index'
+    '@format':     'html'
+
+-
+  name: 'Redirect to welcome screen'
+  uriPattern: ''
+  defaults:
+    '@package':    'NNHKRNK.MCP'
+    '@controller': 'Standard'
+    '@action':     'redirect'
+    '@format':     'html'
+
+- 
+  name: 'Flow welcome screen'
+  uriPattern: 'sse'
+  defaults:
+    '@package':    'NNHKRNK.MCP'
+    '@controller': 'MCP'
+    '@action':     'healthCheck'
+  httpMethods: ['GET']
+
+- 
+  name: 'Flow welcome screen'
+  uriPattern: 'sse'
+  defaults:
+    '@package':    'NNHKRNK.MCP'
+    '@controller': 'MCP'
+    '@action':     'handleMcp'
+  httpMethods: ['POST']
