@@ -6,6 +6,9 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\View\JsonView;
 
+use NNHKRNK\MCP\Tool\Tools\NamingTool;
+use NNHKRNK\MCP\Tool\ToolInterface;
+
 class McpController extends ActionController
 {
 
@@ -118,22 +121,24 @@ class McpController extends ActionController
      */
     public function listMcpTools(): array
     {
+        $namingTool = new NamingTool();
         return [
             'tools' => [
-                [
-                    'name' => 'Naming Tool',
-                    'description' => '本名からあだ名を生成します.',
-                    'inputSchema' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'yourname' => [
-                                'type' => 'string',
-                                'description' => 'あなたの名前.'
-                            ]
-                        ],
-                        'required' => ['yourname']
-                    ],
-                ],
+                // [
+                //     'name' => 'Naming Tool',
+                //     'description' => '本名からあだ名を生成します.',
+                //     'inputSchema' => [
+                //         'type' => 'object',
+                //         'properties' => [
+                //             'yourname' => [
+                //                 'type' => 'string',
+                //                 'description' => 'あなたの名前.'
+                //             ]
+                //         ],
+                //         'required' => ['yourname']
+                //     ],
+                // ],
+                $namingTool->getToolInfo(),
             ]
         ];
     }
@@ -149,19 +154,22 @@ class McpController extends ActionController
      */
     public function callMcpTool(array $params): array
     {
-        if ($params['name'] === 'Naming Tool') {
-            return [
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'text' => 'Your name is アドマイヤベガ.'
-                    ],
-                ],
-                'isError' => false,
-            ];
-        }
+        $tool = new NamingTool();
+        return $tool->call($params);
+        
+        // if ($params['name'] === 'Naming Tool') {
+        //     return [
+        //         'content' => [
+        //             [
+        //                 'type' => 'text',
+        //                 'text' => 'Your name is アドマイヤベガ.'
+        //             ],
+        //         ],
+        //         'isError' => false,
+        //     ];
+        // }
 
-        // ツールがない場合は例外を投げる
-        throw new \Exception('Unknown tool: ' . $params['name'], -32602);
+        // // ツールがない場合は例外を投げる
+        // throw new \Exception('Unknown tool: ' . $params['name'], -32602);
     }
 }
