@@ -36,3 +36,9 @@ Content-Length: 49
 
 {"status":"OK","message":"MCP server is running"}
 ```
+
+### Functional Testing
+
+```
+$ .\bin\phpunit -c .\Build\BuildEssentials\PhpUnit\FunctionalTests.xml .\Packages\Application\NNHKRNK.MCP\Tests\Functional --debug
+```
