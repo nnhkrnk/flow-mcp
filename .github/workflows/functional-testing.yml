@@ -34,7 +34,7 @@ jobs:
           ${{ runner.os }}-php-
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-interaction
+      run: bin/composer install --prefer-dist --no-progress --no-interaction
 
     - name: Run test suite
       run: bin/phpunit -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml Packages/Application/NNHKRNK.MCP/Tests/Functional --debug
