@@ -1,0 +1,33 @@
+name: PHP Unit Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to run tests on'
+        required: true
+        default: 'main'
+        type: string
+    inputs:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: php:8.2-cli
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.target_branch }}
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run test suite
+      run: bin/phpunit -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml Packages/Application/NNHKRNK.MCP/Tests/Functional --debug
