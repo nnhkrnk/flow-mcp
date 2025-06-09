@@ -1,4 +1,4 @@
-name: PHP Unit Tests
+name: Functional Testing
 
 on:
   workflow_dispatch:
