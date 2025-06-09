@@ -56,6 +56,20 @@ class McpControllerTest extends FunctionalTestCase
             arguments: $body
         );
         self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('jsonrpc', $responseBody);
+        self::assertArrayHasKey('id', $responseBody);
+        self::assertArrayHasKey('result', $responseBody);
+        self::assertIsArray($responseBody['result']);
+        self::assertArrayHasKey('protocolVersion', $responseBody['result']);
+        self::assertArrayHasKey('capabilities', $responseBody['result']);
+        self::assertArrayHasKey('logging', $responseBody['result']['capabilities']);
+        self::assertArrayHasKey('tools', $responseBody['result']['capabilities']);
+        self::assertArrayHasKey('resources', $responseBody['result']['capabilities']);
+        self::assertArrayHasKey('prompts', $responseBody['result']['capabilities']);
+        self::assertArrayHasKey('serverInfo', $responseBody['result']);
+        self::assertArrayHasKey('name', $responseBody['result']['serverInfo']);
+        self::assertArrayHasKey('version', $responseBody['result']['serverInfo']);
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -159,6 +173,10 @@ class McpControllerTest extends FunctionalTestCase
             arguments: $body
         );
         self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('jsonrpc', $responseBody);
+        self::assertArrayHasKey('id', $responseBody);
+        self::assertArrayHasKey('result', $responseBody);
     }
 }
 
