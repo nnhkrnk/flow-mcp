@@ -8,7 +8,7 @@ on:
         required: true
         default: 'main'
         type: string
-    inputs:
+  
   push:
     branches: [ main ]
   pull_request:
@@ -17,8 +17,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: php:8.2-cli
+    container: php:8.2-cli
 
     steps:
     - name: Checkout code
@@ -26,8 +25,16 @@ jobs:
       with:
         ref: ${{ github.event.inputs.target_branch }}
 
+    - name: Composer Cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.composer/cache
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer install --prefer-dist --no-progress --no-interaction
 
     - name: Run test suite
       run: bin/phpunit -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml Packages/Application/NNHKRNK.MCP/Tests/Functional --debug
