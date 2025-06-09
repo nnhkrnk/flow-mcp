@@ -25,14 +25,11 @@ jobs:
       with:
         ref: ${{ github.event.inputs.target_branch }}
 
-    - name: Run with php:8.3-cli and install composer
+    - name: Install Composer
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app php:8.3-cli bash -c "
-          apt-get update && apt-get install -y unzip curl git &&
-          curl -sS https://getcomposer.org/installer | php &&
-          mv composer.phar /usr/local/bin/composer &&
-          composer install
-        "
+        apt-get update && apt-get install -y curl unzip git
+        curl -sS https://getcomposer.org/installer | php
+        mv composer.phar /usr/local/bin/composer
 
     - name: Install dependencies
       run: php bin/composer install --prefer-dist --no-progress --no-interaction
