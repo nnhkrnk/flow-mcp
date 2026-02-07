@@ -20,6 +20,13 @@ class McpController extends ActionController
     protected $view;
 
     /**
+     * ロガー
+     * @Flow\Inject
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * MCPサーバがサポートするメディアタイプ
      */
     protected $supportedMediaTypes = ['text/html', 'application/json', 'application/xml', 'application/yaml', 'text/event-stream'];
@@ -81,7 +88,10 @@ class McpController extends ActionController
                 self::MCP_METHOD_NOTIFICATIONS_INITIALIZED => [],
                 self::MCP_METHOD_TOOLS_LIST => $this->listMcpTools(),
                 self::MCP_METHOD_TOOLS_CALL => $this->callMcpTool($arguments['params']),
+                default => [],
             };
+
+            $this->logger->info('MCP Method Called: ' . $arguments['method']);
         } catch (\Exception $e) {
             $response['error'] = [
                 'code' => $e->getCode(),
