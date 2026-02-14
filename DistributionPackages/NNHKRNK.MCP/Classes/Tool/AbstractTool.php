@@ -10,6 +10,8 @@ abstract class AbstractTool
 
     private AbstractInputSchemaType $inputSchema;
 
+    private array $_meta = [];
+
 
     /**
      * コンストラクタ
@@ -18,11 +20,12 @@ abstract class AbstractTool
      * @param string $description ツールの説明
      * @param AbstractInputSchema $inputSchema 入力スキーマ
      */
-    public function __construct(string $name, string $description, AbstractInputSchemaType $inputSchemaType)
+    public function __construct(string $name, string $description, AbstractInputSchemaType $inputSchemaType, array $meta = [])
     {
         $this->name = $name;
         $this->description = $description;
         $this->inputSchema = $inputSchemaType;
+        $this->_meta = $meta;
     }
 
     /**
@@ -34,6 +37,7 @@ abstract class AbstractTool
             'name' => $this->name,
             'description' => $this->description,
             'inputSchema' => $this->inputSchema->getInputSchema(),
+            '_meta' => $this->_meta,
         ];
     }
 }

@@ -23,7 +23,13 @@ class NamingTool extends AbstractTool implements ToolInterface
             ],
             ['yourname']
         );
-        parent::__construct($name, $description, $inputSchemaType);
+        $_meta = [ 'ui' =>
+            [
+                'resourceUri' => 'ui://naming/result',
+                'visibility' => ['model', 'app'],
+            ]
+        ];
+        parent::__construct($name, $description, $inputSchemaType, $_meta);
     }
 
     /**
