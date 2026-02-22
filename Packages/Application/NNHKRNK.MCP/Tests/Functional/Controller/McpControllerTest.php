@@ -178,5 +178,36 @@ class McpControllerTest extends FunctionalTestCase
         self::assertArrayHasKey('id', $responseBody);
         self::assertArrayHasKey('result', $responseBody);
     }
+
+    //////////////////////////////////////////////////////////////////////
+    // MCPサーバのツールを呼び出すAPIのテスト
+    //////////////////////////////////////////////////////////////////////
+
+    /**
+     * 正常系: ツール呼び出しAPIが200 OKを返すことを確認する
+     * @return void
+     */
+    public function testUnknownMethodCallAction(): void
+    {
+        $url = 'http://localhost:8081/sse';
+        $method = 'POST';
+        $body = [
+            'jsonrpc' => '2.0',
+            'method' => 'unknown/method',
+            'id' => 1,
+        ];
+
+        $response = $this->browser->request(
+            $url,
+            method: $method,
+            arguments: $body
+        );
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('jsonrpc', $responseBody);
+        self::assertArrayHasKey('id', $responseBody);
+        self::assertArrayHasKey('result', $responseBody);
+        self::assertEmpty($responseBody['result']);
+    }
 }
 

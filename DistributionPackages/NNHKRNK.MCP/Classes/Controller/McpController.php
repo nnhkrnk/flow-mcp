@@ -155,11 +155,13 @@ class McpController extends ActionController
                 //         'required' => ['yourname']
                 //     ],
                 //     '_meta' => [
-                //         'resourceUri' => 'ui://naming/result',
-                //         'visibility' => [
-                //             'model',
-                //             'app',
-                //         ],
+                //         'ui' => [
+                //             'resourceUri' => 'ui://naming/result',
+                //             'visibility' => [
+                //                 'model',
+                //                 'app',
+                //             ],
+                //         ]
                 //     ]
                 // ],
                 $namingTool->getToolInfo(),
@@ -206,7 +208,7 @@ class McpController extends ActionController
                     'name' => 'Sample Resource',
                     'title' => 'サンプルリソース',
                     'description' => 'これはサンプルのリソースです。',
-                    'typemimeType' => 'text/html;profile=mcp-app',
+                    'mimeType' => 'text/html;profile=mcp-app',
                     'url' => 'ui://naming/result',
                 ]
             ]
