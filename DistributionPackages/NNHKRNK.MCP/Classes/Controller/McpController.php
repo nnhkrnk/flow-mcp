@@ -27,6 +27,13 @@ class McpController extends ActionController
     protected $logger;
 
     /**
+     * パッケージ設定
+     * @Flow\InjectConfiguration(package="NNHKRNK.MCP")
+     * @var array
+     */
+    protected array $settings = [];
+
+    /**
      * MCPサーバがサポートするメディアタイプ
      */
     protected $supportedMediaTypes = ['text/html', 'application/json', 'application/xml', 'application/yaml', 'text/event-stream'];
@@ -67,6 +74,15 @@ class McpController extends ActionController
      */
     public function handleMcpAction(): void
     {
+        if (!$this->isAuthorized()) {
+            $this->response->setStatusCode(401);
+            $this->view->assign('value', [
+                'error' => 'Unauthorized',
+                'message' => 'Valid Bearer token required.',
+            ]);
+            return;
+        }
+
         /**
          * リクエストパラメータを取得
          *
@@ -232,6 +248,24 @@ class McpController extends ActionController
                 ]
             ]
         ];
+    }
+
+    /**
+     * Authorization ヘッダーの Bearer トークンを検証する
+     */
+    private function isAuthorized(): bool
+    {
+        $configuredToken = $this->settings['apiToken'] ?? '';
+        if ($configuredToken === '') {
+            return false;
+        }
+
+        $authHeader = $this->request->getHttpRequest()->getHeaderLine('Authorization');
+        if (!str_starts_with($authHeader, 'Bearer ')) {
+            return false;
+        }
+
+        return hash_equals($configuredToken, substr($authHeader, 7));
     }
 
     /**
