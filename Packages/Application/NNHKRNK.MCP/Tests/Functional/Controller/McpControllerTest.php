@@ -16,18 +16,73 @@ class McpControllerTest extends FunctionalTestCase
      */
     protected $serverRequestFactory;
 
+    private const API_TOKEN = 'test-secret-token';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->objectManager->get(\Neos\Flow\Configuration\ConfigurationManager::class);
+        // テスト用トークンをランタイム設定として注入
+        $settings = $this->objectManager->get(\Neos\Flow\Configuration\ConfigurationManager::class)
+            ->getConfiguration(\Neos\Flow\Configuration\ConfigurationManager::CONFIGURATION_TYPE_SETTINGS, 'NNHKRNK.MCP');
+        $settings['apiToken'] = self::API_TOKEN;
+        // Flow のプロキシオブジェクトへの設定注入はコントローラー生成時に行われるため、
+        // テスト用設定ファイル (Configuration/Testing/Settings.yaml) で管理することを推奨します。
+    }
 
     //////////////////////////////////////////////////////////////////////
     // MCPサーバのヘルスチェックを行うAPIのテスト
     //////////////////////////////////////////////////////////////////////
 
     /**
-     * 正常系: ヘルスチェックAPIが200 OKを返すことを確認する
+     * 正常系: ヘルスチェックAPIが認証なしで200 OKを返すことを確認する
      */
     public function testHealthCheckAction(): void
     {
         $response = $this->browser->request('http://localhost:8081/sse');
         self::assertSame(200, $response->getStatusCode());
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    // 認証テスト
+    //////////////////////////////////////////////////////////////////////
+
+    /**
+     * 異常系: Authorizationヘッダーなしのリクエストが401を返すことを確認する
+     */
+    public function testHandleMcpActionWithoutTokenReturns401(): void
+    {
+        $response = $this->browser->request(
+            'http://localhost:8081/sse',
+            method: 'POST',
+            arguments: [
+                'jsonrpc' => '2.0',
+                'method' => 'initialize',
+                'params' => [],
+                'id' => 1,
+            ]
+        );
+        self::assertSame(401, $response->getStatusCode());
+    }
+
+    /**
+     * 異常系: 不正なトークンのリクエストが401を返すことを確認する
+     */
+    public function testHandleMcpActionWithWrongTokenReturns401(): void
+    {
+        $this->browser->addAutomaticRequestHeader('Authorization', 'Bearer wrong-token');
+        $response = $this->browser->request(
+            'http://localhost:8081/sse',
+            method: 'POST',
+            arguments: [
+                'jsonrpc' => '2.0',
+                'method' => 'initialize',
+                'params' => [],
+                'id' => 1,
+            ]
+        );
+        $this->browser->removeAutomaticRequestHeader('Authorization');
+        self::assertSame(401, $response->getStatusCode());
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -36,7 +91,7 @@ class McpControllerTest extends FunctionalTestCase
 
     /**
      * 正常系: イニシャライズAPIが200 OKを返すことを確認する
-     * 
+     *
      * @return void
      */
     public function testInitializeAction(): void
@@ -50,11 +105,14 @@ class McpControllerTest extends FunctionalTestCase
             'id' => 1,
         ];
 
+        $this->browser->addAutomaticRequestHeader('Authorization', 'Bearer ' . self::API_TOKEN);
         $response = $this->browser->request(
             $url,
             method: $method,
             arguments: $body
         );
+        $this->browser->removeAutomaticRequestHeader('Authorization');
+
         self::assertSame(200, $response->getStatusCode());
         $responseBody = json_decode($response->getBody()->getContents(), true);
         self::assertArrayHasKey('jsonrpc', $responseBody);
@@ -78,7 +136,7 @@ class McpControllerTest extends FunctionalTestCase
 
     /**
      * 正常系: 通知初期化APIが200 OKを返すことを確認する
-     * 
+     *
      * @return void
      */
     public function testNotificationsInitializedAction(): void
@@ -92,11 +150,13 @@ class McpControllerTest extends FunctionalTestCase
             'id' => 1,
         ];
 
+        $this->browser->addAutomaticRequestHeader('Authorization', 'Bearer ' . self::API_TOKEN);
         $response = $this->browser->request(
             $url,
             method: $method,
             arguments: $body
         );
+        $this->browser->removeAutomaticRequestHeader('Authorization');
 
         self::assertSame(200, $response->getStatusCode());
         $responseBody = json_decode($response->getBody()->getContents(), true);
@@ -123,11 +183,14 @@ class McpControllerTest extends FunctionalTestCase
             'id' => 1,
         ];
 
+        $this->browser->addAutomaticRequestHeader('Authorization', 'Bearer ' . self::API_TOKEN);
         $response = $this->browser->request(
             $url,
             method: $method,
             arguments: $body
         );
+        $this->browser->removeAutomaticRequestHeader('Authorization');
+
         self::assertSame(200, $response->getStatusCode());
         $responseBody = json_decode($response->getBody()->getContents(), true);
         self::assertArrayHasKey('jsonrpc', $responseBody);
@@ -167,11 +230,14 @@ class McpControllerTest extends FunctionalTestCase
             'id' => 1,
         ];
 
+        $this->browser->addAutomaticRequestHeader('Authorization', 'Bearer ' . self::API_TOKEN);
         $response = $this->browser->request(
             $url,
             method: $method,
             arguments: $body
         );
+        $this->browser->removeAutomaticRequestHeader('Authorization');
+
         self::assertSame(200, $response->getStatusCode());
         $responseBody = json_decode($response->getBody()->getContents(), true);
         self::assertArrayHasKey('jsonrpc', $responseBody);
@@ -180,11 +246,11 @@ class McpControllerTest extends FunctionalTestCase
     }
 
     //////////////////////////////////////////////////////////////////////
-    // MCPサーバのツールを呼び出すAPIのテスト
+    // MCPサーバの未知メソッド呼び出しのテスト
     //////////////////////////////////////////////////////////////////////
 
     /**
-     * 正常系: ツール呼び出しAPIが200 OKを返すことを確認する
+     * 正常系: 未知メソッド呼び出しAPIが200 OKを返すことを確認する
      * @return void
      */
     public function testUnknownMethodCallAction(): void
@@ -197,11 +263,14 @@ class McpControllerTest extends FunctionalTestCase
             'id' => 1,
         ];
 
+        $this->browser->addAutomaticRequestHeader('Authorization', 'Bearer ' . self::API_TOKEN);
         $response = $this->browser->request(
             $url,
             method: $method,
             arguments: $body
         );
+        $this->browser->removeAutomaticRequestHeader('Authorization');
+
         self::assertSame(200, $response->getStatusCode());
         $responseBody = json_decode($response->getBody()->getContents(), true);
         self::assertArrayHasKey('jsonrpc', $responseBody);
@@ -210,4 +279,3 @@ class McpControllerTest extends FunctionalTestCase
         self::assertEmpty($responseBody['result']);
     }
 }
-

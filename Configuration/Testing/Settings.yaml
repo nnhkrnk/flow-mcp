@@ -13,3 +13,7 @@ Neos:
     persistence:
       backendOptions:
         dbname: 'flow_functional_testing'
+
+NNHKRNK:
+  MCP:
+    apiToken: 'test-secret-token'

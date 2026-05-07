@@ -4,3 +4,10 @@ Neos:
       routes:
         'NNHKRNK.MCP':
           position: 'start'
+
+NNHKRNK:
+  MCP:
+    # Bearer token for MCP endpoint authentication.
+    # Set a non-empty secret here; requests without a matching
+    # "Authorization: Bearer <token>" header will be rejected with 401.
+    apiToken: ''
