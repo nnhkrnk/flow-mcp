@@ -30,13 +30,26 @@ class McpControllerTest extends FunctionalTestCase
         self::assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * 正常系: ヘルスチェックAPIのレスポンスボディが正しい形式であることを確認する
+     */
+    public function testHealthCheckResponseBody(): void
+    {
+        $response = $this->browser->request('http://localhost:8081/sse');
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('status', $responseBody);
+        self::assertArrayHasKey('message', $responseBody);
+        self::assertSame('OK', $responseBody['status']);
+    }
+
     ////////////////////////////////////////////////////////////////////////
     // MCPサーバのイニシャライズを行うAPIのテスト
     ////////////////////////////////////////////////////////////////////////
 
     /**
      * 正常系: イニシャライズAPIが200 OKを返すことを確認する
-     * 
+     *
      * @return void
      */
     public function testInitializeAction(): void
@@ -72,13 +85,40 @@ class McpControllerTest extends FunctionalTestCase
         self::assertArrayHasKey('version', $responseBody['result']['serverInfo']);
     }
 
+    /**
+     * 正常系: イニシャライズAPIのIDなしリクエストが正常に処理されることを確認する
+     *
+     * @return void
+     */
+    public function testInitializeActionWithoutId(): void
+    {
+        $url = 'http://localhost:8081/sse';
+        $method = 'POST';
+        $body = [
+            'jsonrpc' => '2.0',
+            'method' => 'initialize',
+            'params' => [],
+        ];
+
+        $response = $this->browser->request(
+            $url,
+            method: $method,
+            arguments: $body
+        );
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('jsonrpc', $responseBody);
+        self::assertArrayNotHasKey('id', $responseBody);
+        self::assertArrayHasKey('result', $responseBody);
+    }
+
     ////////////////////////////////////////////////////////////////////////
     // MCPサーバの通知初期化を行うAPIのテスト
     ////////////////////////////////////////////////////////////////////////
 
     /**
      * 正常系: 通知初期化APIが200 OKを返すことを確認する
-     * 
+     *
      * @return void
      */
     public function testNotificationsInitializedAction(): void
@@ -102,6 +142,34 @@ class McpControllerTest extends FunctionalTestCase
         $responseBody = json_decode($response->getBody()->getContents(), true);
         self::assertArrayHasKey('jsonrpc', $responseBody);
         self::assertArrayHasKey('id', $responseBody);
+    }
+
+    /**
+     * 正常系: 通知初期化APIのレスポンスが空の結果を返すことを確認する
+     *
+     * @return void
+     */
+    public function testNotificationsInitializedActionReturnsEmptyResult(): void
+    {
+        $url = 'http://localhost:8081/sse';
+        $method = 'POST';
+        $body = [
+            'jsonrpc' => '2.0',
+            'method' => 'notifications/initialized',
+            'params' => [],
+            'id' => 2,
+        ];
+
+        $response = $this->browser->request(
+            $url,
+            method: $method,
+            arguments: $body
+        );
+
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('result', $responseBody);
+        self::assertEmpty($responseBody['result']);
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -179,8 +247,128 @@ class McpControllerTest extends FunctionalTestCase
         self::assertArrayHasKey('result', $responseBody);
     }
 
+    /**
+     * 正常系: ツール呼び出しAPIのレスポンスコンテンツが正しい構造を持つことを確認する
+     * @return void
+     */
+    public function testToolsCallActionResponseContent(): void
+    {
+        $url = 'http://localhost:8081/sse';
+        $method = 'POST';
+        $body = [
+            'jsonrpc' => '2.0',
+            'method' => 'tools/call',
+            'params' => [
+                'toolName' => 'NamingTool',
+                'input' => [
+                    'yourname' => 'Hanako'
+                ]
+            ],
+            'id' => 1,
+        ];
+
+        $response = $this->browser->request(
+            $url,
+            method: $method,
+            arguments: $body
+        );
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('result', $responseBody);
+        $result = $responseBody['result'];
+        self::assertArrayHasKey('content', $result);
+        self::assertIsArray($result['content']);
+        self::assertNotEmpty($result['content']);
+        self::assertArrayHasKey('isError', $result);
+        self::assertFalse($result['isError']);
+        foreach ($result['content'] as $content) {
+            self::assertArrayHasKey('type', $content);
+            self::assertArrayHasKey('text', $content);
+        }
+    }
+
     //////////////////////////////////////////////////////////////////////
-    // MCPサーバのツールを呼び出すAPIのテスト
+    // MCPサーバのリソース一覧を取得するAPIのテスト
+    //////////////////////////////////////////////////////////////////////
+
+    /**
+     * 正常系: リソース一覧APIが200 OKを返すことを確認する
+     * @return void
+     */
+    public function testResourcesListAction(): void
+    {
+        $url = 'http://localhost:8081/sse';
+        $method = 'POST';
+        $body = [
+            'jsonrpc' => '2.0',
+            'method' => 'resources/list',
+            'params' => [],
+            'id' => 1,
+        ];
+
+        $response = $this->browser->request(
+            $url,
+            method: $method,
+            arguments: $body
+        );
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('jsonrpc', $responseBody);
+        self::assertArrayHasKey('id', $responseBody);
+        self::assertArrayHasKey('result', $responseBody);
+        self::assertArrayHasKey('resources', $responseBody['result']);
+        self::assertIsArray($responseBody['result']['resources']);
+        self::assertNotEmpty($responseBody['result']['resources']);
+        foreach ($responseBody['result']['resources'] as $resource) {
+            self::assertArrayHasKey('name', $resource);
+            self::assertArrayHasKey('title', $resource);
+            self::assertArrayHasKey('description', $resource);
+            self::assertArrayHasKey('mimeType', $resource);
+            self::assertArrayHasKey('url', $resource);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    // MCPサーバのリソースを読み込むAPIのテスト
+    //////////////////////////////////////////////////////////////////////
+
+    /**
+     * 正常系: リソース読み込みAPIが200 OKを返すことを確認する
+     * @return void
+     */
+    public function testResourcesReadAction(): void
+    {
+        $url = 'http://localhost:8081/sse';
+        $method = 'POST';
+        $body = [
+            'jsonrpc' => '2.0',
+            'method' => 'resources/read',
+            'params' => [],
+            'id' => 1,
+        ];
+
+        $response = $this->browser->request(
+            $url,
+            method: $method,
+            arguments: $body
+        );
+        self::assertSame(200, $response->getStatusCode());
+        $responseBody = json_decode($response->getBody()->getContents(), true);
+        self::assertArrayHasKey('jsonrpc', $responseBody);
+        self::assertArrayHasKey('id', $responseBody);
+        self::assertArrayHasKey('result', $responseBody);
+        self::assertArrayHasKey('contents', $responseBody['result']);
+        self::assertIsArray($responseBody['result']['contents']);
+        self::assertNotEmpty($responseBody['result']['contents']);
+        foreach ($responseBody['result']['contents'] as $content) {
+            self::assertArrayHasKey('uri', $content);
+            self::assertArrayHasKey('mimeType', $content);
+            self::assertArrayHasKey('text', $content);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    // MCPサーバの不明なメソッドを呼び出すAPIのテスト
     //////////////////////////////////////////////////////////////////////
 
     /**
@@ -210,4 +398,3 @@ class McpControllerTest extends FunctionalTestCase
         self::assertEmpty($responseBody['result']);
     }
 }
-
